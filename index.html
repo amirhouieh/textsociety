@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title> text </title>
+	<link rel="stylesheet" href="style-new.css" type="text/css" media="screen" charset="utf-8" />
+
+	<script type="text/javascript" src="csi/jquery.min.js"></script>
+	<script type="text/javascript" src="csi/jquery-ui-effects.min.js"></script>
+	<script type="text/javascript">
+
+	var quote = [["Money is a "],
+				[ [ "value", "power", "tool", "key" ],  [ "bitch",  "tool", "hourse", "fool"]  ],
+				[" which"],
+				[ [" always "], [" never "] ],
+				[ "works.", "gives you ride.", "sleeps.", "opens the world to you." ],
+				[" So it is not "],
+				[ ["dirty.", "black.", "addictive." ], [ "desirable.", "green.", "pretty.", "important. "] ] ];
+
+
+	var level = 0;
+	var cLevel = 1;
+	var lLevel = 0;
+	var adults = [];
+	var state = true;
+	var maxmimChild = [ {max: 4, min:2}, { max: 2, min:1}, {max:2, min:0} ];
+	var parentText = [];
+	var parentStr ="";
+	var newpSelector=0;
+	var maxSalary= 7;
+	var minSalary= 1;
+	var dol=0;
+	var Level_Per_Age = 7;
+	var salary = [];
+
+
+
+function ParentsNum(){
+	this.max = ( lLevel === 1 )? 2: $('#l'+lLevel).children().size();
+	this.min = ( lLevel === 1 )? 2: Math.ceil( 3 / Math.ceil( lLevel / 7 ) ) ;
+	return Math.floor( Math.random() * ( this.max - this.min +1 ) + this.min );
+}
+
+function childsNum(){
+	var mm = Math.floor( cLevel / Level_Per_Age );
+	this.max = maxmimChild[mm].max;
+	this.min = maxmimChild[mm].min;
+	return Math.floor( Math.random() * ( this.max - this.min +1 ) + this.min );
+}
+
+function getParent(){
+	var rndindex = Math.floor( Math.random() * adults.length );
+	var rnd = adults[rndindex];
+	adults.splice( rndindex, 1 );
+
+	var textArray = [];
+	var i=0;
+	rnd.find('p>span').each( function( ) {
+		textArray.push( '<span id="'+i+'">' + $( this ).text( ) +'</span>' );
+		i++;
+	});
+
+	var pSelected = {
+		ID: rnd.attr('id'),
+		state: rnd.attr('state'),
+		txt: textArray,
+		bdg: Math.floor( Math.random() *  textArray.length )
+
+	}
+	return  pSelected;
+}
+
+function getRndSnt(i,newi,negative){
+	var word = "";
+		if ( ($.isArray(quote[newi][0])) ) {
+			word = '<span id="'+i+'">'+ quote[newi][negative][ Math.floor( Math.random() * quote[newi][negative].length ) ]+'</span>'; 1
+		}else{
+			word = '<span id="'+i+'">'+ quote[newi][ Math.floor( Math.random() * quote[newi].length ) ]+'</span>';
+		}
+	return word;
+}
+
+function levelMaker(){
+
+	lLevel= cLevel-1;
+	var pSelector =0;
+	var tempStr = "";
+	var NmOfParent = ( cLevel === 2 )? 2: ParentsNum(lLevel);
+	var total_child = 0;
+
+
+	if( NmOfParent === 0 ) return;
+	var age = Math.ceil( cLevel / 7 );
+
+	$('.level').animate({
+		'width': 170/age,
+		'margin-right': 3/age+'em',
+		'font-size': 1/age + 'em'
+	}, 1000);
+	
+
+	$('body').append('<div class="level" id="l'+ cLevel +'">');
+	$('.bg').animate( { 'opacity': cLevel*0.05 }, 1000 );
+	var level = $('#l' + cLevel );
+
+	if( cLevel === 1 ){
+		for ( var i=0; i<2; i++ ){
+			for( var j=0; j<7; j++ )
+				tempStr += getRndSnt(j,j,i);
+
+			level.append('<div class="child"' + 'id="00'+i+'"><p>'+tempStr+'</p></div>');
+			// <p>'+'ID: 00'+i+'  / parent: 000 </p>
+			level.find('#00'+i).attr({'state': i, 'p_ID': '00'+i });
+
+			tempStr = "";
+		}
+	}
+	else {
+
+		// select adult parents
+
+		$('#l' + lLevel ).children().each( function( ) {
+			adults.push( $( this ) );
+		});
+
+		for( var i=0; i<NmOfParent; i++ ){
+			var parent = getParent();
+			var num_child = childsNum();
+
+			total_child += num_child;
+			console.log( 'NmOfParent: ' + NmOfParent + "/// childs: " + total_child );
+
+			for( var j=0; j< num_child; j++){
+
+				var have=[];
+				var finish=[];
+
+				var test= parent.txt.splice( 0, Math.floor( (Math.random() * parent.txt.length ) ) );
+				level.append('<div class="child" id="'+cLevel+i+j+'"><p>'+test.join('')+'</p></div>').hide().fadeIn(1000);
+				// <h3> ID:'+cLevel+i+j+' / Parent:'+parent.ID+' </h3>
+				level.find('#'+cLevel+i+j).attr({'state': parent.state, 'p_ID': parent.ID });
+
+
+				var cChild = level.find('#'+cLevel+i+j);
+				var m=0;
+				cChild.find('p>span').each(function(){
+					have.push( $( this ).attr('id') );
+					finish[ have[m] ] = $( this ).text();
+					m++
+				});
+
+				for ( var n=0; n<7 ; n++ ){
+					if( !finish[n] )
+						finish[n] = getRndSnt(n,n,cChild.attr('state'));
+				}
+
+				level.find('#'+cLevel+i+j+' p').html(finish.join(' '));
+				salary.push ( have.length );
+
+			}
+		}
+		adults =[];
+		}
+		var rich=0;
+		$.each( salary, function ( index, item ){
+			if( item > rich)
+				rich = item;
+		});
+		$('.parent_t').find('span').text( $('#l'+cLevel).size() );
+		$('.selected_p').find('span').text( NmOfParent );
+		$('.selected-c').find('span').text( total_child );
+		$('.rich').find('span').text( rich );
+		salary = [];
+
+
+}
+
+function initPage( ){
+
+
+	for(var i = 0; i < 200; i++) {
+	    setTimeout(function() { 
+	    	if ( cLevel === 19 ){
+				cLevel = 0;
+				$('.level *').remove();
+			}
+	    	levelMaker(); 
+	    	cLevel++;
+    		
+		}, 1000*i, i);
+
+	}
+	
+}
+
+	$( document ).ready( initPage );
+
+	</script>
+
+</head>
+
+<body>
+	
+
+	<div class="header">
+		<div>
+			<p class="parent_t"> Number of the parents: <span></span></p>
+			<p class="selected_p"> Number of the adults parents: <span></span></p>
+		</div>
+		<div>
+			<p class="selected-c"> Number of the childs: <span></span></p>
+			<p class="rich"> max child salary: <span></span> words</p>
+
+		</div>
+
+	</div> 
+	<div class="bg"> </div>
+
+
+
+</body>
+
+</html>
